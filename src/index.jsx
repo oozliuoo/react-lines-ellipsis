@@ -19,9 +19,20 @@ const defaultProps = {
   text: '',
   trimRight: true,
   winWidth: undefined, // for the HOC
+  /**
+   * Following are customized new props
+   */
+  // A custom expand button, support react node
   customExpand: null,
+  spaceForCustomExpand: null,
+  /**
+   * Use these following two fields to support some customized html
+   * before the text you want to truncate. The measurement will count
+   * the `precedingTag` and will then remove them from the truncated text,
+   * by `precedingTagNum`
+   */
   precedingTag: null,
-  precedingTagCharNum: null,
+  precedingTagNum: null,
 }
 const usedProps = Object.keys(defaultProps)
 /**
@@ -119,7 +130,7 @@ class LinesEllipsis extends React.Component {
     const clamped = ellipsisIndex > -1
     const newState = {
       clamped,
-      text: clamped ? this.units.slice(0, ellipsisIndex - props.precedingTagCharNum || 0).join('') : props.text
+      text: clamped ? this.units.slice(0, ellipsisIndex - props.precedingTagNum || 0).join('') : props.text
     }
     this.setState(newState, props.onReflow.bind(this, newState))
   }
@@ -151,9 +162,12 @@ class LinesEllipsis extends React.Component {
     const lastIndex = indexes[this.maxLine]
     const units = this.units.slice(0, lastIndex)
     const maxOffsetTop = this.canvas.children[lastIndex].offsetTop
+    const ellipsisHTML = this.props.spaceForCustomExpand ? 
+      `<wbr><span class='LinesEllipsis-ellipsis' style='margin-right: ${this.props.spaceForCustomExpand}px'>${this.props.ellipsis}</span>` :
+      `<wbr><span class='LinesEllipsis-ellipsis'>${this.props.ellipsis}</span>`
     this.canvas.innerHTML = (this.props.precedingTag ? this.props.precedingTag : "") + units.map((c, i) => {
       return `<span class='LinesEllipsis-unit'>${c}</span>`
-    }).join('') + `<wbr><span class='LinesEllipsis-ellipsis'>${this.props.ellipsis}</span>`
+    }).join('') + ellipsisHTML
     const ndEllipsis = this.canvas.lastElementChild
     let ndPrevUnit = prevSibling(ndEllipsis, 2)
     while (ndPrevUnit &&
